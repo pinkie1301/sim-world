@@ -2193,7 +2193,7 @@ async def generate_iss_map(
                 tx.role = tx_info["role"]
                 scene.add(tx)
                 transmitters.append(tx)
-
+            scene.frequency= 1.5e9
             # 添加接收器
             rx_name, rx_pos = rx_config
             rx_position = to_sionna_coords(rx_pos)
@@ -2280,6 +2280,10 @@ async def generate_iss_map(
             # 計算 TSS (Total Signal Strength) - 所有發射器的信號強度加總
             TSS_safe = np.maximum(TSS, 1e-12)
             TSS_dbm = 10 * np.log10(TSS_safe / 1e-3)
+
+            DSS_safe = np.maximum(DSS, 1e-12)
+            DSS_dbm = 10 * np.log10(DSS_safe / 1e-3)
+
             logger.info(f"TSS 原始數據統計: min={np.min(TSS):.2e}, max={np.max(TSS):.2e}, 零值數量={np.sum(TSS == 0)}")
 
             # 準備 ISS 地圖數據和 CFAR 檢測
@@ -2479,12 +2483,22 @@ async def generate_iss_map(
                 data_dbm = np.zeros_like(data_dbm)
             
             # 設置顏色範圍來改善可視化效果
-            vmin = np.percentile(data_dbm[np.isfinite(data_dbm)], 5) if np.any(np.isfinite(data_dbm)) else -80
-            vmax = np.percentile(data_dbm[np.isfinite(data_dbm)], 95) if np.any(np.isfinite(data_dbm)) else -20
             
-            plt.pcolormesh(X, Y, data_dbm, shading='nearest', cmap='viridis', vmin=vmin, vmax=vmax)
-            plt.colorbar(label=f"{map_title} (dBm)")
-            plt.title(map_title)
+            vmin = -100
+            vmax = -30
+            if include_peaks and visible_jammers:  # ISS 地圖有干擾器
+                plt.pcolormesh(X, Y, data_dbm, shading='nearest', cmap='jet', vmin=vmin, vmax=vmax)
+                plt.colorbar(label=f"{map_title} (dBm)")
+                plt.title(map_title)
+            elif include_peaks:  # ISS 地圖無干擾器
+                plt.pcolormesh(X, Y, data_dbm, shading='nearest', cmap='viridis', vmin=-100, vmax=-50)
+                plt.colorbar(label=f"{map_title} (dBm)")
+                plt.title(map_title)
+            else:  # TSS 地圖
+                plt.pcolormesh(X, Y, data_dbm, shading='nearest', cmap='viridis', vmin=-100, vmax=-50)
+                plt.colorbar(label=f"{map_title} (dBm)")
+                plt.title(map_title)
+
             
             # 標記檢測到的峰值 (僅限 ISS 模式)
             if include_peaks and peak_coords_data is not None and len(peak_coords_data) > 0:
@@ -2513,7 +2527,7 @@ async def generate_iss_map(
                 plt.scatter(rx_obj.position[0], rx_obj.position[1], c='green', marker='o', s=50, label='Rx')
 
         # 1. 生成 ISS 地圖 
-        generate_map_visualization(iss_dbm, "ISS Map with 2D-CFAR Peak Detection", str(ISS_MAP_IMAGE_PATH), 
+        generate_map_visualization(TSS_dbm, "ISS Map with 2D-CFAR Peak Detection", str(ISS_MAP_IMAGE_PATH), 
                                    include_peaks=True, peak_coords_data=peak_coords)
         add_device_positions(rx_config, all_txs_info, scene)
         plt.tight_layout()
@@ -2523,7 +2537,7 @@ async def generate_iss_map(
         plt.close()
 
         # 2. 生成 TSS 地圖
-        generate_map_visualization(TSS_dbm, "TSS Map - Total Signal Strength", str(TSS_MAP_IMAGE_PATH), 
+        generate_map_visualization(DSS_dbm, "TSS Map - Total Signal Strength", str(TSS_MAP_IMAGE_PATH), 
                                    include_peaks=False)
         add_device_positions(rx_config, all_txs_info, scene)
         plt.tight_layout()
