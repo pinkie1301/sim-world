@@ -80,6 +80,9 @@ const MainScene: React.FC<MainSceneProps> = ({
         ;(controls as OrbitControlsImpl)?.target?.set(0, 0, 0)
     }, [controls])
 
+    // 判斷場景是否為 Z-up 模型（rotationX ≈ -π/2 表示 Z-up → Y-up 翻轉）
+    const isZUpScene = Math.abs(sceneRotationX + Math.PI / 2) < 0.01
+
     const prepared = useMemo(() => {
         const root = mainScene.clone(true)
         let maxArea = 0
@@ -90,7 +93,7 @@ const MainScene: React.FC<MainSceneProps> = ({
         satelliteTexture.wrapT = RepeatWrapping
         satelliteTexture.colorSpace = SRGBColorSpace
         satelliteTexture.repeat.set(1, 1)
-        satelliteTexture.anisotropy = 16
+        satelliteTexture.anisotropy = 2
         satelliteTexture.flipY = false
 
         // 處理場景中的所有網格
@@ -100,26 +103,38 @@ const MainScene: React.FC<MainSceneProps> = ({
                 m.castShadow = true
                 m.receiveShadow = true
 
+                // 如果幾何體缺少法線，自動計算（修正 TestScene 等 GLB 匯出無法線導致光照異常）
+                if (m.geometry && !m.geometry.attributes.normal) {
+                    m.geometry.computeVertexNormals()
+                }
+
+                const hasVertexColors = !!(m.geometry && m.geometry.attributes.color)
+
                 // 處理可能的材質問題
                 if (m.material) {
                     // 確保材質能正確接收光照
                     if (Array.isArray(m.material)) {
-                        m.material.forEach((mat) => {
+                        m.material = m.material.map((mat) => {
                             if (mat instanceof THREE.MeshBasicMaterial) {
-                                const newMat = new THREE.MeshStandardMaterial({
+                                return new THREE.MeshStandardMaterial({
                                     color: (mat as any).color,
                                     map: (mat as any).map,
+                                    vertexColors: hasVertexColors,
                                 })
-                                mat = newMat
                             }
+                            if (hasVertexColors) (mat as any).vertexColors = true
+                            return mat
                         })
                     } else if (m.material instanceof THREE.MeshBasicMaterial) {
                         const basicMat = m.material
-                        const newMat = new THREE.MeshStandardMaterial({
+                        m.material = new THREE.MeshStandardMaterial({
                             color: basicMat.color,
                             map: basicMat.map,
+                            vertexColors: hasVertexColors,
                         })
-                        m.material = newMat
+                    } else if (hasVertexColors) {
+                        (m.material as any).vertexColors = true
+                        m.material.needsUpdate = true
                     }
                 }
 
@@ -129,7 +144,11 @@ const MainScene: React.FC<MainSceneProps> = ({
                     if (bb) {
                         const size = new THREE.Vector3()
                         bb.getSize(size)
-                        const area = size.x * size.z
+                        // Z-up 模型：地面在 XY 平面展開，用 size.x * size.y 偵測
+                        // Y-up 模型：地面在 XZ 平面展開，用 size.x * size.z 偵測
+                        const area = isZUpScene
+                            ? size.x * size.y
+                            : size.x * size.z
                         if (area > maxArea) {
                             if (groundMesh) groundMesh.castShadow = true
                             maxArea = area
@@ -138,12 +157,10 @@ const MainScene: React.FC<MainSceneProps> = ({
                                 new THREE.MeshStandardMaterial({
                                     map: satelliteTexture,
                                     color: 0xffffff,
-                                    roughness: 0.8,
+                                    roughness: 0.6,
                                     metalness: 0.1,
-                                    emissive: 0x555555,
-                                    emissiveIntensity: 0.4,
                                     vertexColors: false,
-                                    normalScale: new THREE.Vector2(0.5, 0.5),
+                                    side: THREE.DoubleSide, // 修正 Z-up GLB 旋轉後法線朝下導致底圖過暗
                                 })
                             groundMesh.receiveShadow = true
                             groundMesh.castShadow = false
@@ -154,7 +171,7 @@ const MainScene: React.FC<MainSceneProps> = ({
         })
 
         return root
-    }, [mainScene, SATELLITE_TEXTURE_URL])
+    }, [mainScene, SATELLITE_TEXTURE_URL, isZUpScene])
 
     const deviceMeshes = useMemo(() => {
         return devices.map((device: any) => {

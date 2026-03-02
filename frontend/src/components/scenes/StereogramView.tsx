@@ -661,7 +661,7 @@ export default function SceneView({
                 camera={{ position: [0, 400, 500], near: 0.1, far: 1e4 }}
                 gl={{
                     toneMapping: THREE.ACESFilmicToneMapping,
-                    toneMappingExposure: 1.2,
+                    toneMappingExposure: 1.6,
                     alpha: true,
                     preserveDrawingBuffer: false,
                     powerPreference: 'high-performance',
@@ -675,13 +675,13 @@ export default function SceneView({
                 }}
             >
                 <hemisphereLight args={[0xffffff, 0x444444, 1.0]} />
-                <ambientLight intensity={0.2} />
+                <ambientLight intensity={0.5} />
                 <directionalLight
                     castShadow
                     position={[15, 30, 10]}
                     intensity={1.5}
-                    shadow-mapSize-width={4096}
-                    shadow-mapSize-height={4096}
+                    shadow-mapSize-width={1024}
+                    shadow-mapSize-height={1024}
                     shadow-camera-near={1}
                     shadow-camera-far={1000}
                     shadow-camera-top={500}
