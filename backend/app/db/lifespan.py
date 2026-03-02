@@ -19,23 +19,12 @@ from app.domains.device.models.device_model import Device, DeviceRole  # 從領�
 # Import drone tracking models for database table creation
 from app.domains.drone_tracking.models.drone_tracking_model import DroneTrackingSession
 
-# 取消註釋 ground_station 相關導入
-from app.domains.satellite.models.ground_station_model import (
-    GroundStation,
-)  # 從領域模型導入
-from app.domains.satellite.models.dto import GroundStationCreate  # 新的 DTO 路徑
-
 from app.core.config import (
     OUTPUT_DIR,
     configure_gpu_cpu,
     configure_matplotlib,
 )
 import os
-
-# import numpy as np # numpy seems unused directly in this file now
-
-# New import for TLE synchronization service
-from app.domains.satellite.services.tle_service import synchronize_oneweb_tles
 
 # For Redis client management
 import redis.asyncio as aioredis
@@ -47,67 +36,15 @@ async def create_db_and_tables():
     """Creates database tables if they don't exist."""
     async with engine.begin() as conn:
         logger.info("Creating database tables...")
-        # This will create tables for all models registered with SQLModel.metadata
-        # AND tables for models registered with SQLAlchemy Base.metadata if they share the same engine connection strategy
-        # Ensure SatelliteTLE and GroundStation (SQLAlchemy Base) are covered.
-        # If they use a different Base.metadata, that needs to be created too.
-        # For simplicity, assuming all tables are findable via engine used by SQLModel or share metadata.
-        # The `app.db.base.py` imports SatelliteTLE and GroundStation, making them known to `Base.metadata`
-        # if `Base` is the SQLAlchemy declarative_base they inherit from.
-        # If `SQLModel.metadata` is separate, tables for SatelliteTLE and GroundStation also need creation here.
-        # Assuming they are part of the same metadata scope that `engine` is aware of.
-        # The `app.db.base_class.Base` is the SQLAlchemy declarative base.
         from app.db.base_class import Base as SQLAlchemyBase
 
         await conn.run_sync(
             SQLAlchemyBase.metadata.create_all
-        )  # Creates SatelliteTLE, GroundStation tables
+        )
         await conn.run_sync(
             SQLModel.metadata.create_all
         )  # Creates Device table (and any other SQLModels)
         logger.info("Database tables created (if they didn't exist).")
-
-
-async def seed_default_ground_station(session: AsyncSession):
-    """Seeds a default ground station if it doesn't exist."""
-    # 還原種子數據函數內容
-    logger.info("Checking if default ground station 'NYCU_gnb' needs to be seeded...")
-    stmt = sqlalchemy_select(GroundStation).where(
-        GroundStation.station_identifier == "NYCU_gnb"
-    )
-    result = await session.execute(stmt)
-    existing_station = result.scalar_one_or_none()
-
-    if existing_station:
-        logger.info(
-            f"Default ground station 'NYCU_gnb' already exists with id {existing_station.id}. Skipping seeding."
-        )
-    else:
-        logger.info("Default ground station 'NYCU_gnb' not found. Seeding...")
-        default_station_data = GroundStationCreate(
-            station_identifier="NYCU_gnb",
-            name="NYCU Main gNB",
-            latitude_deg=24.786667,
-            longitude_deg=120.996944,
-            altitude_m=100.0,
-            description="Default Ground Station at National Yang Ming Chiao Tung University",
-        )
-        # We need to create an instance of the DB model GroundStation
-        db_station = GroundStation(**default_station_data.model_dump())
-        try:
-            session.add(db_station)
-            await session.commit()
-            await session.refresh(
-                db_station
-            )  # To get the auto-generated ID if needed later
-            logger.info(
-                f"Successfully seeded default ground station 'NYCU_gnb' with id {db_station.id}."
-            )
-        except Exception as e:
-            await session.rollback()
-            logger.error(
-                f"Error seeding default ground station 'NYCU_gnb': {e}", exc_info=True
-            )
 
 
 async def seed_initial_device_data(session: AsyncSession):
@@ -271,19 +208,6 @@ async def lifespan(app: FastAPI):
     async with async_session_maker() as db_session:
         # 初始化設備資料
         await seed_initial_device_data(db_session)
-        # 恢復地面站相關初始化
-        await seed_default_ground_station(db_session)
-
-    # 恢復 TLE 相關同步
-    if hasattr(app.state, "redis") and app.state.redis:
-        try:
-            # 自動同步 OneWeb TLE 資料
-            logger.info("Synchronizing OneWeb TLE data in the background...")
-            await synchronize_oneweb_tles(async_session_maker, app.state.redis)
-        except Exception as e:
-            logger.error(f"Error during OneWeb TLE synchronization: {e}", exc_info=True)
-    else:
-        logger.warning("Redis unavailable, skipping OneWeb TLE synchronization")
 
     logger.info("Application startup complete.")
 

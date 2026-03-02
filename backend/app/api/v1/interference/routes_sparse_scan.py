@@ -31,6 +31,7 @@ def frontend_coords_to_gps(x_m: float, y_m: float, z_m: float = 0.0, scene: str 
     支援的場景：
     - potou: 破斗山場景
     - poto: 坡頭漁港場景
+    - testscene: TestScene場景
     """
     from app.domains.coordinates.services.coordinate_service import (
         ORIGIN_LATITUDE_POTOU, ORIGIN_LONGITUDE_POTOU,
@@ -38,7 +39,10 @@ def frontend_coords_to_gps(x_m: float, y_m: float, z_m: float = 0.0, scene: str 
         LATITUDE_SCALE_PER_METER_Y, LONGITUDE_SCALE_PER_METER_X,
         ORIGIN_LATITUDE_POTO, ORIGIN_LONGITUDE_POTO,
         ORIGIN_FRONTEND_X_POTO, ORIGIN_FRONTEND_Y_POTO,
-        LATITUDE_SCALE_PER_METER_Y_POTO, LONGITUDE_SCALE_PER_METER_X_POTO
+        LATITUDE_SCALE_PER_METER_Y_POTO, LONGITUDE_SCALE_PER_METER_X_POTO,
+        ORIGIN_LATITUDE_TESTSCENE, ORIGIN_LONGITUDE_TESTSCENE,
+        ORIGIN_FRONTEND_X_TESTSCENE, ORIGIN_FRONTEND_Y_TESTSCENE,
+        LATITUDE_SCALE_PER_METER_Y_TESTSCENE, LONGITUDE_SCALE_PER_METER_X_TESTSCENE
     )
     
     # 根據場景選擇對應的參數
@@ -49,6 +53,13 @@ def frontend_coords_to_gps(x_m: float, y_m: float, z_m: float = 0.0, scene: str 
         origin_y = ORIGIN_FRONTEND_Y_POTO
         lat_scale = LATITUDE_SCALE_PER_METER_Y_POTO
         lon_scale = LONGITUDE_SCALE_PER_METER_X_POTO
+    elif scene.lower() == "testscene":
+        origin_lat = ORIGIN_LATITUDE_TESTSCENE
+        origin_lon = ORIGIN_LONGITUDE_TESTSCENE
+        origin_x = ORIGIN_FRONTEND_X_TESTSCENE
+        origin_y = ORIGIN_FRONTEND_Y_TESTSCENE
+        lat_scale = LATITUDE_SCALE_PER_METER_Y_TESTSCENE
+        lon_scale = LONGITUDE_SCALE_PER_METER_X_TESTSCENE
     else:  # 默認使用potou參數
         origin_lat = ORIGIN_LATITUDE_POTOU
         origin_lon = ORIGIN_LONGITUDE_POTOU

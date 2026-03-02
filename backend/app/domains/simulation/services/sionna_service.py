@@ -137,11 +137,11 @@ def check_scene_health(scene_name: str, xml_path: str) -> bool:
             raise FileNotFoundError(f"場景 {scene_name} 的 XML 文件不存在: {xml_path}")
 
         # 檢查 2: XML 格式問題 - NTPU 有已知的 shape id 問題
-        if scene_name in ["NTPU"]:
-            raise ValueError(
-                f"場景 {scene_name} 的 XML 文件格式不相容於 Sionna"
-                f"（shape 元素缺少 id 屬性）"
-            )
+        # if scene_name in ["NTPU"]:
+        #     raise ValueError(
+        #         f"場景 {scene_name} 的 XML 文件格式不相容於 Sionna"
+        #         f"（shape 元素缺少 id 屬性）"
+        #     )
 
         # 檢查 3: 幾何數據完整性 - 檢查 PLY 文件大小
         if scene_name == "Lotus":
@@ -188,6 +188,7 @@ def get_scene_xml_file_path(scene_name: str) -> str:
         "nanliao": "nnn",
         "potou": "potou",
         "poto": "poto",
+        "testscene": "TestScene",
     }
 
     backend_scene_name = scene_mapping.get(scene_name.lower(), "NYCU")

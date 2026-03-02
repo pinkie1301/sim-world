@@ -53,6 +53,14 @@ SCENE_CONFIG = {
         "offset_x": 920,
         "offset_y": 600,
         "scale": 1.0
+    },
+    "testscene": {
+    "bounds": {"min_x": -256, "max_x": 256, "min_y": -256, "max_y": 256},  # area_m=512
+    "resolution": 4.0,         # pixel_size_m from scene_meta.json
+    "matrix_size": 128,        # grid_res from scene_meta.json
+    "offset_x": 64,            # 需根據紋理圖的中心計算
+    "offset_y": 64,
+    "scale": 1.0
     }
 }
 

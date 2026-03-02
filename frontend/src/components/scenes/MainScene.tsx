@@ -12,6 +12,7 @@ import { ApiRoutes } from '../../config/apiRoutes'
 import {
     getBackendSceneName,
     getSceneTextureName,
+    getSceneCoordinateTransform,
 } from '../../utils/sceneUtils'
 import { worldToThreeJS } from '../../utils/coordUtils'
 
@@ -49,8 +50,9 @@ const MainScene: React.FC<MainSceneProps> = ({
     sparseScanCurrentIdx = 0,
     sparseScanActive = false,
 }) => {
-    // 根據場景名稱動態生成 URL
+    // 根據場景名稱動態生成 URL 及取得旋轉參數
     const backendSceneName = getBackendSceneName(sceneName)
+    const { rotationX: sceneRotationX, rotationY: sceneRotationY } = getSceneCoordinateTransform(sceneName)
     const SCENE_URL = ApiRoutes.scenes.getSceneModel(backendSceneName)
     const BS_MODEL_URL = ApiRoutes.simulations.getModel('tower')
     const IPHONE_MODEL_URL = ApiRoutes.simulations.getModel('iphone')
@@ -150,6 +152,7 @@ const MainScene: React.FC<MainSceneProps> = ({
                 }
             }
         })
+
         return root
     }, [mainScene, SATELLITE_TEXTURE_URL])
 
@@ -283,8 +286,15 @@ const MainScene: React.FC<MainSceneProps> = ({
 
     return (
         <>
-            <primitive object={prepared} castShadow receiveShadow />
-            {deviceMeshes}
+            {/* 場景模型單獨旋轉，修正 GLB 匯出軸向差異（如 TestScene Z-up → Y-up） */}
+            <group rotation={[sceneRotationX, sceneRotationY, 0]}>
+                <primitive object={prepared} castShadow receiveShadow />
+            </group>
+            {/* 設備僅受 Y 軸旋轉，保持 Sionna 朝向不變 */}
+            <group rotation={[0, sceneRotationY, 0]}>
+                {deviceMeshes}
+            </group>
+            {/* 衛星使用天頂座標系(azimuth/elevation)，不受場景旋轉影響 */}
             <SatelliteManager satellites={satellites} />
         </>
     )

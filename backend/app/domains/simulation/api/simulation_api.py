@@ -46,7 +46,7 @@ def create_image_response(image_path: str, filename: str):
 
 @router.get("/scene-image", response_description="空場景圖像")
 async def get_scene_image(
-    scene: str = Query("nycu", description="場景名稱 (nycu, lotus, ntpu, nanliao)"),
+    scene: str = Query("nycu", description="場景名稱 (nycu, lotus, ntpu, nanliao, testscene)"),
 ):
     """產生並回傳只包含基本場景的圖像 (無設備)"""
     logger.info(f"--- API Request: /scene-image?scene={scene} (empty map) ---")
@@ -67,7 +67,7 @@ async def get_scene_image(
 @router.get("/cfr-plot", response_description="通道頻率響應圖")
 async def get_cfr_plot(
     session: AsyncSession = Depends(get_session),
-    scene: str = Query("nycu", description="場景名稱 (nycu, lotus)"),
+    scene: str = Query("nycu", description="場景名稱 (nycu, lotus, testscene)"),
 ):
     """產生並回傳通道頻率響應 (CFR) 圖"""
     logger.info(f"--- API Request: /cfr-plot?scene={scene} ---")
@@ -89,7 +89,7 @@ async def get_cfr_plot(
 @router.get("/sinr-map", response_description="SINR 地圖")
 async def get_sinr_map(
     session: AsyncSession = Depends(get_session),
-    scene: str = Query("nycu", description="場景名稱 (nycu, lotus)"),
+    scene: str = Query("nycu", description="場景名稱 (nycu, lotus, testscene)"),
     sinr_vmin: float = Query(-40.0, description="SINR 最小值 (dB)"),
     sinr_vmax: float = Query(0.0, description="SINR 最大值 (dB)"),
     cell_size: float = Query(1.0, description="Radio map 網格大小 (m)"),
@@ -123,7 +123,7 @@ async def get_sinr_map(
 @router.get("/radio-map", response_description="無線電地圖 (不含干擾源)")
 async def get_radio_map(
     session: AsyncSession = Depends(get_session),
-    scene: str = Query("nycu", description="場景名稱 (nycu, lotus)"),
+    scene: str = Query("nycu", description="場景名稱 (nycu, lotus, testscene)"),
     sinr_vmin: float = Query(-40.0, description="SINR 最小值 (dB)"),
     sinr_vmax: float = Query(0.0, description="SINR 最大值 (dB)"),
     cell_size: float = Query(1.0, description="Radio map 網格大小 (m)"),
@@ -162,7 +162,7 @@ async def get_radio_map(
 @router.get("/doppler-plots", response_description="延遲多普勒圖")
 async def get_doppler_plots(
     session: AsyncSession = Depends(get_session),
-    scene: str = Query("nycu", description="場景名稱 (nycu, lotus)"),
+    scene: str = Query("nycu", description="場景名稱 (nycu, lotus, testscene)"),
 ):
     """產生並回傳延遲多普勒圖"""
     logger.info(f"--- API Request: /doppler-plots?scene={scene} ---")
@@ -184,7 +184,7 @@ async def get_doppler_plots(
 @router.get("/channel-response", response_description="通道響應圖")
 async def get_channel_response(
     session: AsyncSession = Depends(get_session),
-    scene: str = Query("nycu", description="場景名稱 (nycu, lotus)"),
+    scene: str = Query("nycu", description="場景名稱 (nycu, lotus, testscene)"),
 ):
     """產生並回傳通道響應圖，顯示 H_des、H_jam 和 H_all 的三維圖"""
     logger.info(f"--- API Request: /channel-response?scene={scene} ---")
@@ -210,7 +210,7 @@ async def get_channel_response(
 @router.get("/iss-map", response_description="干擾信號檢測地圖")
 async def get_iss_map(
     session: AsyncSession = Depends(get_session),
-    scene: str = Query("potou", description="場景名稱 (potou, poto, nycu, lotus)"),
+    scene: str = Query("potou", description="場景名稱 (potou, poto, nycu, lotus, testscene)"),
     tx_x: Optional[float] = Query(None, description="TX位置X座標 (米)"),
     tx_y: Optional[float] = Query(None, description="TX位置Y座標 (米)"),
     tx_z: Optional[float] = Query(None, description="TX位置Z座標 (米)"),
@@ -350,7 +350,7 @@ async def get_iss_map(
 @router.get("/iss-map-cfar-peaks", response_description="ISS地圖CFAR峰值GPS數據")
 async def get_iss_map_cfar_peaks(
     session: AsyncSession = Depends(get_session),
-    scene: str = Query("potou", description="場景名稱 (potou, poto, nycu, lotus)"),
+    scene: str = Query("potou", description="場景名稱 (potou, poto, nycu, lotus, testscene)"),
     force_refresh: bool = Query(False, description="強制重新生成ISS地圖以獲取最新峰值")
 ):
     """獲取ISS地圖的CFAR峰值GPS座標"""

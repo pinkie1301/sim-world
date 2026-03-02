@@ -40,6 +40,20 @@ ORIGIN_FRONTEND_Y_POTO = -60  # 基準點對應的前端Y座標 (米)
 LATITUDE_SCALE_PER_METER_Y_POTO = -8.539671484888491e-06  # 度 / 前端Y單位 (米)
 LONGITUDE_SCALE_PER_METER_X_POTO = 8.630300606175349e-06  # 度 / 前端X單位 (米)
 
+# --- TestScene Coordinate Conversion Constants ---
+# TestScene場景基準點: GPS (24.943834, 121.369192) 對應前端座標 (0, 0)
+# 場景中心即原點，area_m=512，grid_res=128，pixel_size_m=4.0
+ORIGIN_LATITUDE_TESTSCENE = 24.943834  # TestScene場景GPS基準點緯度
+ORIGIN_LONGITUDE_TESTSCENE = 121.369192  # TestScene場景GPS基準點經度
+ORIGIN_FRONTEND_X_TESTSCENE = 0.0  # 基準點對應的前端X座標 (米) - 場景以原點為中心
+ORIGIN_FRONTEND_Y_TESTSCENE = 0.0  # 基準點對應的前端Y座標 (米) - 場景以原點為中心
+
+# TestScene場景比例因子（基於WGS-84橢球體在緯度24.94°計算）
+# 1度緯度 ≈ 110574 米 -> 1米 ≈ 9.044e-6 度
+# 1度經度 ≈ 110574 * cos(24.94°) ≈ 100245 米 -> 1米 ≈ 9.976e-6 度
+LATITUDE_SCALE_PER_METER_Y_TESTSCENE = 9.044e-06  # 度 / 前端Y單位 (米)
+LONGITUDE_SCALE_PER_METER_X_TESTSCENE = 9.976e-06  # 度 / 前端X單位 (米)
+
 # 保留舊的GLB常數作為備用
 ORIGIN_LATITUDE_GLB = 24.786667  # NYCU基準點緯度
 ORIGIN_LONGITUDE_GLB = 120.996944  # NYCU基準點經度

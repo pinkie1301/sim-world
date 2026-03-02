@@ -10,7 +10,7 @@ pyglet>=2.0.0  # 為 pyrender 提供渲染支持
 PyOpenGL>=3.1.0  # OpenGL 支持
 PyOpenGL_accelerate  # 可選但建議，提高 OpenGL 性能
 python-multipart  # 支援表單數據和文件上傳
-skyfield # 新增 skyfield 套件
+skyfield # 用於座標服務中的 ECEF/WGS84 座標轉換
 httpx # 用於非同步 HTTP 請求
 redis # 用於 Redis 客戶端
 aiohttp # 用於非同步 HTTP 客戶端

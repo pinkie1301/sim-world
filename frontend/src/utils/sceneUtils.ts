@@ -10,6 +10,7 @@ export const SCENE_MAPPING = {
     nanliao: 'nnn',
     potou: 'potou',
     poto: 'poto',
+    testscene: 'TestScene',
 } as const
 
 // 場景顯示名稱映射
@@ -20,40 +21,61 @@ export const SCENE_DISPLAY_NAMES = {
     nanliao: '南寮漁港',
     potou: '破斗山',
     poto: '坡頭漁港',
+    testscene: '測試場景',
 } as const
 
 // 場景座標轉換參數映射
 // scale: 像素/公尺比例 (pixel/meter), 根據後端cell_size=4.0m/pixel，所以scale=1/4.0=0.25 pixel/meter
+// rotationY: 場景模型繞 Y 軸旋轉角度 (弧度)，用於修正 GLB 匯出軸向差異
 export const SCENE_COORDINATE_TRANSFORMS = {
     nycu: {
         offsetX: 865,
         offsetY: 640,
         scale: 0.25,  // 1 pixel = 4 meters, so scale = 1/4 = 0.25 pixel/meter
+        rotationX: 0,
+        rotationY: 0,
     },
     lotus: {
         offsetX: 1200,
         offsetY: 900,
         scale: 0.25,
+        rotationX: 0,
+        rotationY: 0,
     },
     ntpu: {
         offsetX: 900,
         offsetY: 620,
         scale: 0.25,
+        rotationX: 0,
+        rotationY: 0,
     },
     nanliao: {
         offsetX: 920,
         offsetY: 600,
         scale: 0.25,
+        rotationX: 0,
+        rotationY: 0,
     },
     potou: {
         offsetX: 900,
         offsetY: 600,
         scale: 0.25,
+        rotationX: 0,
+        rotationY: 0,
     },
     poto: {
         offsetX: 900,
         offsetY: 600,
         scale: 0.25,
+        rotationX: 0,
+        rotationY: 0,
+    },
+    testscene: { 
+        offsetX: 64, 
+        offsetY: 64, 
+        scale: 0.25,
+        rotationX: -Math.PI / 2,  // TestScene GLB 使用 Z-up，需繞 X 軸旋轉 -90° 修正為 three.js Y-up
+        rotationY: 0,
     },
 } as const
 
@@ -99,6 +121,8 @@ export function getSceneTextureName(sceneParam: string): string {
             return 'EXPORT_GOOGLE_SAT_WM.png'  // potou場景使用相同的紋理檔案
         case 'poto':
             return 'EXPORT_GOOGLE_SAT_WM.png'  // poto場景使用相同的紋理檔案
+        case 'TestScene':
+            return 'EXPORT_GOOGLE_SAT_WM.png'  // testscene場景使用相同的紋理檔案
         default:
             return 'EXPORT_GOOGLE_SAT_WM.png'
     }
@@ -109,7 +133,7 @@ export function getSceneTextureName(sceneParam: string): string {
  * @param sceneParam 前端路由參數
  * @returns 座標轉換參數
  */
-export function getSceneCoordinateTransform(sceneParam: string): { offsetX: number; offsetY: number; scale: number } {
+export function getSceneCoordinateTransform(sceneParam: string): { offsetX: number; offsetY: number; scale: number; rotationX: number; rotationY: number } {
     const normalizedParam = sceneParam.toLowerCase()
     return SCENE_COORDINATE_TRANSFORMS[normalizedParam as keyof typeof SCENE_COORDINATE_TRANSFORMS] || SCENE_COORDINATE_TRANSFORMS.nycu
 }
