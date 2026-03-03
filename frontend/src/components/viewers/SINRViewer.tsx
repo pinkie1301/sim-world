@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ViewerProps } from '../../types/viewer'
 import { ApiRoutes } from '../../config/apiRoutes'
+import { useMapSettings } from '../../store/useMapSettings'
 
 // SINR Map 顯示組件
 const SINRViewer: React.FC<ViewerProps> = ({
@@ -12,10 +13,7 @@ const SINRViewer: React.FC<ViewerProps> = ({
     const [isLoading, setIsLoading] = useState(true)
     const [imageUrl, setImageUrl] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
-    const [sinrVmin, setSinrVmin] = useState<number>(-40)
-    const [sinrVmax, setSinrVmax] = useState<number>(0)
-    const [cellSize, setCellSize] = useState<number>(1.0)
-    const [samplesPerTx, setSamplesPerTx] = useState<number>(10 ** 7)
+    const { sinr_vmin: sinrVmin, sinr_vmax: sinrVmax, cellSize, samples_per_tx: samplesPerTx, applyToken } = useMapSettings()
     const [retryCount, setRetryCount] = useState(0)
     const maxRetries = 3
 
@@ -91,6 +89,7 @@ const SINRViewer: React.FC<ViewerProps> = ({
         sinrVmax,
         cellSize,
         samplesPerTx,
+        applyToken,
         updateTimestamp,
         retryCount,
     ])
@@ -111,19 +110,6 @@ const SINRViewer: React.FC<ViewerProps> = ({
             }
         }
     }, [loadSINRMapImage])
-
-    const handleSinrVminChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSinrVmin(Number(e.target.value))
-    }
-    const handleSinrVmaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSinrVmax(Number(e.target.value))
-    }
-    const handleCellSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCellSize(Number(e.target.value))
-    }
-    const handleSamplesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSamplesPerTx(Number(e.target.value))
-    }
 
     const handleRetryClick = () => {
         setRetryCount(0)

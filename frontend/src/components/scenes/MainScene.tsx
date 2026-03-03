@@ -249,7 +249,7 @@ const MainScene: React.FC<MainSceneProps> = ({
                             return [0.2, 0.2, 0.2]  // iPhone需要較小的縮放
                         case 'tower':
                         default:
-                            return [0.15, 0.15, 0.15]        // Tower縮小到合適大小
+                            return [0.1, 0.1, 0.1]        // Tower縮小到合適大小
                     }
                 }
 
@@ -259,11 +259,11 @@ const MainScene: React.FC<MainSceneProps> = ({
                         url={getTxModelUrl()}
                         position={[
                             device.position_x,
-                            device.position_z ,
+                            device.position_z - 40,
                             device.position_y,
                         ]}
                         scale={getModelScale()}
-                        pivotOffset={[0, 0, 0]}
+                        pivotOffset={[0, 0, -40]}
                     />
                 )
             } else if (device.role === 'jammer' && device.visible === true) {
@@ -273,11 +273,11 @@ const MainScene: React.FC<MainSceneProps> = ({
                         url={JAMMER_MODEL_URL}
                         position={[
                             device.position_x,
-                            device.position_z + 5,
+                            device.position_z - 40,
                             device.position_y,
                         ]}
-                        scale={[0.02, 0.02, 0.02]}
-                        pivotOffset={[0, -8970, 0]}
+                        scale={[0.01, 0.01, 0.01]}
+                        pivotOffset={[0, 0, -40]}
                     />
                 )
             } else {

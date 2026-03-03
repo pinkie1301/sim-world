@@ -1257,7 +1257,7 @@ async def generate_sinr_map(
         fig, ax = plt.subplots(figsize=(7, 5))
         X, Y = np.meshgrid(x_unique, y_unique)
         pcm = ax.pcolormesh(
-            X, Y, sinr_db, shading="nearest", vmin=sinr_vmin + 10, vmax=sinr_vmax
+            X, Y, sinr_db, shading="nearest", vmin=sinr_vmin, vmax=sinr_vmax
         )
         fig.colorbar(pcm, ax=ax, label="SINR (dB)")
 
