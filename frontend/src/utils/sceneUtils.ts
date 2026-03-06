@@ -74,7 +74,7 @@ export const SCENE_COORDINATE_TRANSFORMS = {
         offsetX: 64, 
         offsetY: 64, 
         scale: 0.25,
-        rotationX: -Math.PI / 2,  // TestScene GLB 使用 Z-up，需繞 X 軸旋轉 -90° 修正為 three.js Y-up
+        rotationX: 0,
         rotationY: 0,
     },
 } as const

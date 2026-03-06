@@ -12,7 +12,6 @@ import { ApiRoutes } from '../../config/apiRoutes'
 import {
     getBackendSceneName,
     getSceneTextureName,
-    getSceneCoordinateTransform,
 } from '../../utils/sceneUtils'
 import { worldToThreeJS } from '../../utils/coordUtils'
 
@@ -50,9 +49,8 @@ const MainScene: React.FC<MainSceneProps> = ({
     sparseScanCurrentIdx = 0,
     sparseScanActive = false,
 }) => {
-    // 根據場景名稱動態生成 URL 及取得旋轉參數
+    // 根據場景名稱動態生成 URL
     const backendSceneName = getBackendSceneName(sceneName)
-    const { rotationX: sceneRotationX, rotationY: sceneRotationY } = getSceneCoordinateTransform(sceneName)
     const SCENE_URL = ApiRoutes.scenes.getSceneModel(backendSceneName)
     const BS_MODEL_URL = ApiRoutes.simulations.getModel('tower')
     const IPHONE_MODEL_URL = ApiRoutes.simulations.getModel('iphone')
@@ -80,9 +78,6 @@ const MainScene: React.FC<MainSceneProps> = ({
         ;(controls as OrbitControlsImpl)?.target?.set(0, 0, 0)
     }, [controls])
 
-    // 判斷場景是否為 Z-up 模型（rotationX ≈ -π/2 表示 Z-up → Y-up 翻轉）
-    const isZUpScene = Math.abs(sceneRotationX + Math.PI / 2) < 0.01
-
     const prepared = useMemo(() => {
         const root = mainScene.clone(true)
         let maxArea = 0
@@ -93,7 +88,7 @@ const MainScene: React.FC<MainSceneProps> = ({
         satelliteTexture.wrapT = RepeatWrapping
         satelliteTexture.colorSpace = SRGBColorSpace
         satelliteTexture.repeat.set(1, 1)
-        satelliteTexture.anisotropy = 2
+        satelliteTexture.anisotropy = 16
         satelliteTexture.flipY = false
 
         // 處理場景中的所有網格
@@ -144,11 +139,7 @@ const MainScene: React.FC<MainSceneProps> = ({
                     if (bb) {
                         const size = new THREE.Vector3()
                         bb.getSize(size)
-                        // Z-up 模型：地面在 XY 平面展開，用 size.x * size.y 偵測
-                        // Y-up 模型：地面在 XZ 平面展開，用 size.x * size.z 偵測
-                        const area = isZUpScene
-                            ? size.x * size.y
-                            : size.x * size.z
+                        const area = size.x * size.z
                         if (area > maxArea) {
                             if (groundMesh) groundMesh.castShadow = true
                             maxArea = area
@@ -157,10 +148,12 @@ const MainScene: React.FC<MainSceneProps> = ({
                                 new THREE.MeshStandardMaterial({
                                     map: satelliteTexture,
                                     color: 0xffffff,
-                                    roughness: 0.6,
+                                    roughness: 0.8,
                                     metalness: 0.1,
+                                    emissive: 0x555555,
+                                    emissiveIntensity: 0.4,
                                     vertexColors: false,
-                                    side: THREE.DoubleSide, // 修正 Z-up GLB 旋轉後法線朝下導致底圖過暗
+                                    normalScale: new THREE.Vector2(0.5, 0.5),
                                 })
                             groundMesh.receiveShadow = true
                             groundMesh.castShadow = false
@@ -171,7 +164,7 @@ const MainScene: React.FC<MainSceneProps> = ({
         })
 
         return root
-    }, [mainScene, SATELLITE_TEXTURE_URL, isZUpScene])
+    }, [mainScene, SATELLITE_TEXTURE_URL])
 
     const deviceMeshes = useMemo(() => {
         return devices.map((device: any) => {
@@ -249,7 +242,7 @@ const MainScene: React.FC<MainSceneProps> = ({
                             return [0.2, 0.2, 0.2]  // iPhone需要較小的縮放
                         case 'tower':
                         default:
-                            return [0.1, 0.1, 0.1]        // Tower縮小到合適大小
+                            return [0.15, 0.15, 0.15]        // Tower縮小到合適大小
                     }
                 }
 
@@ -259,11 +252,11 @@ const MainScene: React.FC<MainSceneProps> = ({
                         url={getTxModelUrl()}
                         position={[
                             device.position_x,
-                            device.position_z - 40,
+                            device.position_z ,
                             device.position_y,
                         ]}
                         scale={getModelScale()}
-                        pivotOffset={[0, 0, -40]}
+                        pivotOffset={[0, 0, 0]}
                     />
                 )
             } else if (device.role === 'jammer' && device.visible === true) {
@@ -273,11 +266,11 @@ const MainScene: React.FC<MainSceneProps> = ({
                         url={JAMMER_MODEL_URL}
                         position={[
                             device.position_x,
-                            device.position_z - 40,
+                            device.position_z + 5,
                             device.position_y,
                         ]}
-                        scale={[0.01, 0.01, 0.01]}
-                        pivotOffset={[0, 0, -40]}
+                        scale={[0.02, 0.02, 0.02]}
+                        pivotOffset={[0, -8970, 0]}
                     />
                 )
             } else {
@@ -303,15 +296,8 @@ const MainScene: React.FC<MainSceneProps> = ({
 
     return (
         <>
-            {/* 場景模型單獨旋轉，修正 GLB 匯出軸向差異（如 TestScene Z-up → Y-up） */}
-            <group rotation={[sceneRotationX, sceneRotationY, 0]}>
-                <primitive object={prepared} castShadow receiveShadow />
-            </group>
-            {/* 設備僅受 Y 軸旋轉，保持 Sionna 朝向不變 */}
-            <group rotation={[0, sceneRotationY, 0]}>
-                {deviceMeshes}
-            </group>
-            {/* 衛星使用天頂座標系(azimuth/elevation)，不受場景旋轉影響 */}
+            <primitive object={prepared} castShadow receiveShadow />
+            {deviceMeshes}
             <SatelliteManager satellites={satellites} />
         </>
     )

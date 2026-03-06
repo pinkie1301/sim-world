@@ -160,11 +160,11 @@
         <ref id="mat-itu_marble" name="bsdf"/>
         <boolean name="face_normals" value="true"/>
     </shape>
-    <shape type="ply" id="mesh-building_20">
+    <!-- <shape type="ply" id="mesh-building_20">
         <string name="filename" value="mesh/building_20.ply"/>
         <ref id="mat-itu_marble" name="bsdf"/>
         <boolean name="face_normals" value="true"/>
-    </shape>
+    </shape> -->
     <shape type="ply" id="mesh-building_21">
         <string name="filename" value="mesh/building_21.ply"/>
         <ref id="mat-itu_marble" name="bsdf"/>
