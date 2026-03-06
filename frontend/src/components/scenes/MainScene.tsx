@@ -139,7 +139,12 @@ const MainScene: React.FC<MainSceneProps> = ({
                     if (bb) {
                         const size = new THREE.Vector3()
                         bb.getSize(size)
-                        const area = size.x * size.z
+                        // 使用最大投影面積偵測地面（座標系無關，適用 Y-up 與 Z-up）
+                        const area = Math.max(
+                            size.x * size.z,  // Y-up: 地面在 XZ 平面
+                            size.x * size.y,  // Z-up: 地面在 XY 平面
+                            size.y * size.z   // 其他情況
+                        )
                         if (area > maxArea) {
                             if (groundMesh) groundMesh.castShadow = true
                             maxArea = area
@@ -148,12 +153,10 @@ const MainScene: React.FC<MainSceneProps> = ({
                                 new THREE.MeshStandardMaterial({
                                     map: satelliteTexture,
                                     color: 0xffffff,
-                                    roughness: 0.8,
-                                    metalness: 0.1,
-                                    emissive: 0x555555,
-                                    emissiveIntensity: 0.4,
+                                    roughness: 0.65,
+                                    metalness: 0.05,
                                     vertexColors: false,
-                                    normalScale: new THREE.Vector2(0.5, 0.5),
+                                    side: THREE.DoubleSide, // 確保任何法線朝向都能正確接收光照
                                 })
                             groundMesh.receiveShadow = true
                             groundMesh.castShadow = false
@@ -252,7 +255,7 @@ const MainScene: React.FC<MainSceneProps> = ({
                         url={getTxModelUrl()}
                         position={[
                             device.position_x,
-                            device.position_z ,
+                            device.position_z - 40,
                             device.position_y,
                         ]}
                         scale={getModelScale()}
@@ -266,11 +269,11 @@ const MainScene: React.FC<MainSceneProps> = ({
                         url={JAMMER_MODEL_URL}
                         position={[
                             device.position_x,
-                            device.position_z + 5,
+                            device.position_z - 40,
                             device.position_y,
                         ]}
-                        scale={[0.02, 0.02, 0.02]}
-                        pivotOffset={[0, -8970, 0]}
+                        scale={[0.01, 0.01, 0.01]}
+                        pivotOffset={[0, 0, 0]}
                     />
                 )
             } else {
